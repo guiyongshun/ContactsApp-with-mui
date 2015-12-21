@@ -226,9 +226,15 @@
 				"resources": [
 					"js/mui.min.js",
 					"fonts/mui.ttf",
-					"css/mui.min.css"
+					"css/mui.min.css",
+					"/js/mui.picker.js",
+					"/js/mui.poppicker.js",
+					"js/mui.picker.js",
+					"js/mui.poppicker.js"
 				],
-				"refer": [],
+				"refer": [
+					"barcode.html"
+				],
 				"priority": 0
 			}
 		},

@@ -1,26 +1,32 @@
 <!DOCTYPE html>
 <html>
 	<head>
-	<meta charset="utf-8">
-	<title>Webview Example</title>
-	<script type="text/javascript">
-// H5 plus事件处理
-function plusReady(){
-}
-if(window.plus){
-	plusReady();
-}else{
-	document.addEventListener("plusready",plusReady,false);
-}
-
-// 创建并显示新窗口
-function openWebview(){
-	var w = plus.webview.open( "http://weibo.com/dhnetwork" );
-}
-	</script>
+		<meta charset="utf-8">
+		<title></title>
 	</head>
 	<body>
-		打开Webview窗口<br/>
-		<button onclick="openWebview()">Open</button>
+		<button id="button">提交	</button>
+		<button id="get">获取</button>
+		<textarea name="" rows="10" cols="20" id="txt"></textarea>
 	</body>
+	<script src = "https://cdn.wilddog.com/js/client/current/wilddog.js" ></script>
+	<script type="text/javascript">
+		var ref = new Wilddog("https://contact.wilddogio.com/contacts");
+		document.getElementById('button').addEventListener('click',function(){
+			ref.push({id: '9001',
+			    name: '桂永顺',
+			    tel: '18565710630',
+			    age: '25'}
+			);
+		});
+		document.getElementById('get').addEventListener('click',function(){
+			ref.on("value", function(datasnapshot) {
+				console.log(datasnapshot.val());
+				var val = datasnapshot.val();
+				for(var item in val){
+					console.log(val[item]);
+				};
+			});
+		});
+	</script>
 </html>
