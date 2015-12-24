@@ -4,17 +4,103 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
     <title></title>
-    <script src="js/mui.min.js"></script>
     <link href="css/mui.min.css" rel="stylesheet"/>
 </head>
 <body>
 	<header class="mui-bar mui-bar-nav">
 		<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+		<button class="mui-btn mui-btn-link mui-btn-nav mui-pull-right" id="save">
+			保存
+			<span class="mui-icon mui-icon-right-nav"></span>
+		</button>
 		<h1 class="mui-title">通讯录</h1>
 	</header>
-	
+	<div class="mui-content">
+	    <div class="mui-content-padded" style="margin: 5px;">
+			<h5 style="margin-top: 10px;">基本资料</h5>
+			<div class="mui-input-group">
+				<div class="mui-input-row">
+					<label>姓名：</label>
+					<input type="text" class="mui-input-clear" placeholder="请输入姓名" name="name">
+				</div>
+				<div class="mui-input-row">
+					<label>电话：</label>
+					<input type="tel" class="mui-input-clear" placeholder="请输入电话" name="tel">
+				</div>
+				<div class="mui-input-row">
+					<label>年龄：</label>
+					<input type="tel" class="mui-input-clear" placeholder="请输入年龄" name="age">
+				</div>
+			</div>
+			<h5 style="margin-top: 10px;">简介</h5>
+			<div class="mui-input-row" style="margin: 10px 5px;">
+				<textarea id="textarea" rows="5" placeholder="请输入简介" name="text"></textarea>
+			</div>
+		</div>
+	</div>
+	<script src="js/mui.min.js"></script>
+	<script src="js/template.js"></script>
+	<script src = "https://cdn.wilddog.com/js/client/current/wilddog.js" ></script>
 	<script>
-		
+		(function($){
+			$.init();
+			$.plusReady(function(){
+				var ref = new Wilddog("https://contact.wilddogio.com/contacts");
+				//接收父级页面传过来的联系人ID
+				window.addEventListener('getInfo',function(e){
+					var id = e.detail.id;
+					
+					ref.on("value", function(data){
+						var oName = document.getElementsByName('name')[0];
+						var oTel = document.getElementsByName('tel')[0];
+						var oAge = document.getElementsByName('age')[0];
+						var oTxt = document.getElementsByName('text')[0];
+						var val = data.val();
+						oName.value = val[id].name;
+						oTel.value = val[id].tel;
+						oAge.value = val[id].age;
+						oTxt.value = val[id].txt;
+						document.getElementById('save').removeEventListener('tap',function(id){
+							editContact(id);
+						});
+						document.getElementById('save').addEventListener('tap',function(id){
+							editContact(id);
+						});
+					});
+				});
+				function editContact(id){
+				var newName = document.getElementsByName('name')[0].value;
+							var newTel = document.getElementsByName('tel')[0].value;
+							var newAge = document.getElementsByName('age')[0].value;
+							var newTxt = document.getElementsByName('text')[0].value;
+							console.log(id);
+							var ref = new Wilddog("https://contact.wilddogio.com/contacts/" + id);
+							var result = {};
+							if(newName != val[id].name) result.name = newName;
+							if(newTel != val[id].tel) result.tel = newTel;
+							if(newAge != val[id].age) result.age = newAge;
+							if(newTxt != val[id].txt) result.txt = newTxt;
+							if(isEmpty(result)){
+								$.toast('未对联系人进行修改！');
+								return;
+							};
+							ref.update(result,function(err){
+								if(err == null){
+									$.toast('联系人修改成功！');
+								}else{
+									$.confirm('联系人添加失败','W(￣_￣)W' + err,['确认']);
+								};
+							});
+			};
+			});
+			
+			function isEmpty(obj){ 
+    			for (var name in obj){ 
+        			return false; 
+    			}; 
+    			return true; 
+			};
+		})(mui);
 	</script>
 </body>
 </html>

@@ -7,7 +7,6 @@
 	<link href="css/mui.min.css" rel="stylesheet"/>
 </head>
 <body>
-
 	<div class="mui-off-canvas-wrap mui-draggable">
 		<div class="mui-inner-wrap">
 			<header class="mui-bar mui-bar-nav">
@@ -37,21 +36,11 @@
 					</li>
 				</ul>
 			</aside>
-			<div class="mui-content">
-				<ul class="mui-table-view mui-table-view-chevron" id="contactList">
-					<!--<li class="mui-table-view-cell">
-						<div class="mui-slider-right mui-disabled">
-							<a class="mui-btn mui-btn-grey mui-icon mui-icon-person"></a>
-							<a class="mui-btn mui-btn-yellow mui-icon mui-icon-phone"></a>
-							<a class="mui-btn mui-btn-red mui-icon mui-icon-email"></a>
-						</div>
-						<div class="mui-slider-handle">
-							<div class="mui-table-cell">
-								桂永顺
-							</div>
-						</div>
-					</li>-->
-				</ul>
+			<div class="mui-content mui-scroll-wrapper">
+				<div class="mui-scroll">
+					<ul class="mui-table-view mui-table-view-chevron" id="contactList">
+					</ul>
+				</div>
 			</div>
 			<!-- off-canvas backdrop -->
 			<div class="mui-off-canvas-backdrop"></div>
@@ -59,11 +48,11 @@
 	</div>
 	<script id="tpl" type="text/html">
 	    <%for(var i = 0,len = list.length; i < len; i++) {%>
-	    	<li class="mui-table-view-cell">
+	    	<li class="mui-table-view-cell" data-id = "<%:=list[i].id %>">
 	    		<div class="mui-slider-right mui-disabled">
-	    			<a class="mui-btn mui-btn-grey mui-icon mui-icon-person"></a>
-	    			<a class="mui-btn mui-btn-yellow mui-icon mui-icon-phone"></a>
-	    			<a class="mui-btn mui-btn-red mui-icon mui-icon-email"></a>
+	    			<a class="mui-btn mui-btn-red mui-icon mui-icon-trash"></a>
+	    			<a class="mui-btn mui-btn-green mui-icon mui-icon-phone"></a>
+	    			<a class="mui-btn mui-btn-blue mui-icon mui-icon-chatboxes"></a>
 	    		</div>
 	    		<div class="mui-slider-handle">
 	    			<div class="mui-table-cell"><%:=list[i].name %></div>
@@ -76,41 +65,97 @@
 	<script src = "https://cdn.wilddog.com/js/client/current/wilddog.js" ></script>
 	<script type="text/javascript" charset="utf-8">
 		(function($) {
-			$.init();
-			var ref = new Wilddog("https://contact.wilddogio.com/contacts");
-			
-			ref.on("value", function(datasnapshot) {
-				var val = datasnapshot.val();
-				var list = [];
-				for(var item in val){
-					console.log(val[item].id);
-					list.push({'name': val[item].name,'id': val[item].id});
-				};
-				var tpl = document.getElementById('tpl').innerHTML;
-				var tmp = template(tpl, {'list': list});
-				document.getElementById('contactList').innerHTML = tmp;
+			$.init({
+				preloadPages:[{
+    				id:'info',
+    				url:'info.html'
+  				}]
 			});
-			
-			
 			$.plusReady(function() {
-				var page = mui.preload({
+				var ref = new Wilddog("https://contact.wilddogio.com/contacts");
+				ref.on("value", function(datasnapshot) {
+					var val = datasnapshot.val();
+					var list = [];
+					plus.storage.clear();
+					for(var item in val){
+						list.push({'name': val[item].name,'id': item});
+						var str = JSON.stringify(val[item]);
+						plus.storage.setItem(item,str);
+					};
+					var tpl = document.getElementById('tpl').innerHTML;
+					var tmp = template(tpl, {'list': list});
+					document.getElementById('contactList').innerHTML = tmp;
+				});
+				//只能预加载单个页面
+				/*var page = $.preload({
 					url: 'info.html',
 					id: 'info'					
-				});
-				document.getElementById('contactList').addEventListener('tap', function(e) {
-					e = e || window.event;
-					var target = e.target || srcElement;
-					if (target.nodeName.toLowerCase() == 'li' || target.nodeName.toLowerCase() == 'div') {
-						$.openWindow('info');
+				});*/
+				var infoPage = null;
+				//点击联系人进入详细资料
+				$('#contactList').on('tap','li',function(e){
+					var id = this.getAttribute('data-id');
+					if(!infoPage){
+						infoPage = plus.webview.getWebviewById('info');
 					};
+					//传值给详情页面，通知加载新数据
+  					$.fire(infoPage,'getInfo',{id:id});
+  					$.openWindow('info');
 				});
+				//打电话
+				$('#contactList').on('tap','.mui-icon-phone',function(){
+					var oLi = this.parentNode.parentNode;
+					var id = oLi.getAttribute('data-id');
+					ref.once('value',function(data){
+						var val = data.val();
+						var tel = val[id].tel;
+						plus.device.dial(tel,true);
+					});
+					//关闭侧滑菜单
+					$.swipeoutClose(oLi);
+				});
+				//发短信
+				$('#contactList').on('tap','.mui-icon-chatboxes',function(){
+					var oLi = this.parentNode.parentNode;
+					var id = oLi.getAttribute('data-id');
+					ref.once('value',function(data){
+						var val = data.val();
+						var tel = val[id].tel;
+						var msgto = [];
+						msgto.push(tel);
+						var msg = plus.messaging.createMessage(plus.messaging.TYPE_SMS);
+						msg.to = msgto;
+						msg.body = '来自Html5+的短信息！';
+						plus.messaging.sendMessage(msg);
+					});
+					$.swipeoutClose(oLi);
+				});
+				//删除
+				$('#contactList').on('tap','.mui-icon-trash',function(){
+					var oLi = this.parentNode.parentNode;
+					var id = oLi.getAttribute('data-id');
+					var btnArray = ['确认', '取消'];
+					$.confirm('确认删除该条记录？', '通讯录', btnArray, function(e) {
+						if (e.index == 0) {
+							ref.child(id).remove();
+						} else {
+							$.swipeoutClose(oLi);
+							/*setTimeout(function() {
+								$.swipeoutClose(oLi);
+							}, 0);*/
+						}
+					});
+				});
+				//打开新增页面
 				document.getElementById('add').addEventListener('tap', function(e) {
-					e = e || window.event;
+					var e = e || window.event;
 					var target = e.target || srcElement;
+					/*var foo = plus.storage.getLength();
+					console.log(foo);*/
 					$.openWindow({
 						url: 'add.html',
 						id: 'add'
-					})
+					});
 				});
 			});
 		})(mui);

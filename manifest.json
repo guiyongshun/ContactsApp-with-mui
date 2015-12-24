@@ -205,7 +205,8 @@
 				"resources": [
 					"js/mui.min.js",
 					"fonts/mui.ttf",
-					"css/mui.min.css"
+					"css/mui.min.css",
+					"js/template.js"
 				],
 				"refer": [
 					"info.html",
@@ -217,7 +218,8 @@
 				"resources": [
 					"js/mui.min.js",
 					"fonts/mui.ttf",
-					"css/mui.min.css"
+					"css/mui.min.css",
+					"js/template.js"
 				],
 				"refer": [],
 				"priority": 0

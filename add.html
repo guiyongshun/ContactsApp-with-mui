@@ -26,7 +26,7 @@
 				</div>
 				<div class="mui-input-row">
 					<label>年龄：</label>
-					<input type="text" class="mui-input-speech mui-input-clear" placeholder="请输入性别" name="age">
+					<input type="tel" class="mui-input-speech mui-input-clear" placeholder="请输入年龄" name="age">
 				</div>
 				<!--<div class="mui-input-row">
 						<label>年龄：</label>
@@ -43,15 +43,16 @@
 			</div>
 			<h5 style="margin-top: 10px;">简介</h5>
 			<div class="mui-input-row" style="margin: 10px 5px;">
-				<textarea id="textarea" rows="5" placeholder="多行文本框"></textarea>
+				<textarea id="textarea" rows="5" placeholder="请输入简介" name="text"></textarea>
 			</div>
 			<div class="mui-button-row">
 				<button type="button" class="mui-btn mui-btn-primary" onclick="return false;" id="submit">确认</button>&nbsp;&nbsp;
-				<button type="button" class="mui-btn mui-btn-danger" onclick="return false;">取消</button>
+				<button type="button" class="mui-btn mui-btn-danger mui-action-back" onclick="return false;">取消</button>
 			</div>
 		</div>
 	</div>
 	<script src="js/mui.min.js"></script>
+	<script src = "https://cdn.wilddog.com/js/client/current/wilddog.js"></script>
 	<script type="text/javascript" charset="utf-8">
 		(function($) {
 			$.init();
@@ -63,13 +64,29 @@
 						id: 'barcode'
 					});
 				});
-				
-				//提交存至storage中
-				
 				document.getElementById('submit').addEventListener('tap',function(){
-					var name = document.getElementsByName('name')[0].getAttribute('value');
-					plus.storage.setItem({'contacts': 'ds'});
-					console.log(plus.storage.getItem('contacts'));
+					var _name = document.getElementsByName('name')[0].value.trim();
+					var _tel = document.getElementsByName('tel')[0].value.trim();
+					var _age = document.getElementsByName('age')[0].value.trim();
+					var _txt = document.getElementsByName('text')[0].value.trim();
+					if(_name.length == 0 || _tel.length == 0 || _age.length == 0 || _txt.length == 0){
+						$.confirm('您有资料尚未填写！','(。﹏。*)',['确认']);
+						return;
+					};
+					var ref = new Wilddog("https://contact.wilddogio.com/contacts");
+					ref.push({
+						name: _name,
+						tel: _tel,
+						age: _age,
+						txt: _txt
+					},function(err){
+						if(err == null){
+							$.toast('联系人添加成功！');
+							setTimeout($.back(),400);
+						}else{
+							$.confirm('联系人添加失败','W(￣_￣)W',['确认']);
+						};
+					});
 				});
 			});
 		})(mui);
