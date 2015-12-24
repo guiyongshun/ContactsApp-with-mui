@@ -21,17 +21,17 @@
 				<ul class="mui-table-view mui-table-view-chevron mui-table-view-inverted">
 					<li class="mui-table-view-cell">
 						<a class="mui-navigate-right">
-						Item 1
+						亲戚
 					</a>
 					</li>
 					<li class="mui-table-view-cell">
 						<a class="mui-navigate-right">
-						Item 2
+						朋友
 					</a>
 					</li>
 					<li class="mui-table-view-cell">
 						<a class="mui-navigate-right">
-						Item 3
+						同事
 					</a>
 					</li>
 				</ul>
@@ -73,6 +73,19 @@
 			});
 			$.plusReady(function() {
 				var ref = new Wilddog("https://contact.wilddogio.com/contacts");
+				var list = [];
+				//storage中存在数据则优先加载
+				var len = plus.storage.getLength();
+				if(len > 0){
+					for(var i=0; i<len; i++){
+						var _key = plus.storage.key(i);
+						var _value = plus.storage.getItem(_key);
+						var _name = JSON.parse(_value).name;
+						list.push({'name': _name,'id': _key});
+					};
+					render(list);
+				};
+				//请求数据
 				ref.on("value", function(datasnapshot) {
 					var val = datasnapshot.val();
 					var list = [];
@@ -82,9 +95,7 @@
 						var str = JSON.stringify(val[item]);
 						plus.storage.setItem(item,str);
 					};
-					var tpl = document.getElementById('tpl').innerHTML;
-					var tmp = template(tpl, {'list': list});
-					document.getElementById('contactList').innerHTML = tmp;
+					render(list);
 				});
 				//只能预加载单个页面
 				/*var page = $.preload({
@@ -101,6 +112,8 @@
 					//传值给详情页面，通知加载新数据
   					$.fire(infoPage,'getInfo',{id:id});
   					$.openWindow('info');
+  					//关闭侧滑菜单
+					$.swipeoutClose(this);
 				});
 				//打电话
 				$('#contactList').on('tap','.mui-icon-phone',function(){
@@ -159,6 +172,12 @@
 				});
 			});
 		})(mui);
+		//渲染页面
+		function render(list){
+			var tpl = document.getElementById('tpl').innerHTML;
+			var tmp = template(tpl, {'list': list});
+			document.getElementById('contactList').innerHTML = tmp;
+		};
 	</script>
 </body>
 </html>
